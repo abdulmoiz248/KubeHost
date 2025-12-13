@@ -1,0 +1,10 @@
+[
+  {
+    "appName": "gptwrap",
+    "gitUrl": "https://github.com/abdulmoiz248/Gpt-Wrap",
+    "branch": "main",
+    "type": "nodejs",
+    "status": "cloned",
+    "url": "http://localhost:8000/gptwrap"
+  }
+]

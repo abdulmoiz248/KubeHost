@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GitDeploy Dashboard</title>
+<style>
+body { font-family: Arial; margin: 40px; }
+form { margin-bottom: 30px; }
+input { margin: 5px; padding: 5px; }
+table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
+</style>
+</head>
+<body>
+<h1>GitDeploy Dashboard</h1>
+
+<form method="post" action="/deploy">
+  <label>Git Repo URL:</label><br>
+  <input type="text" name="gitUrl" required><br>
+  <label>Branch (optional):</label><br>
+  <input type="text" name="branch" value="main"><br>
+  <label>App Name:</label><br>
+  <input type="text" name="appName" required><br>
+  <input type="submit" value="Deploy">
+</form>
+
+<h2>Deployed Apps</h2>
+<table>
+  <tr>
+    <th>App Name</th>
+    <th>Git URL</th>
+    <th>Branch</th>
+    <th>Type</th>
+    <th>Status</th>
+    <th>URL</th>
+  </tr>
+  {% for app in apps %}
+  <tr>
+    <td>{{ app.appName }}</td>
+    <td>{{ app.gitUrl }}</td>
+    <td>{{ app.branch }}</td>
+    <td>{{ app.type }}</td>
+    <td>{{ app.status }}</td>
+    <td><a href="{{ app.url }}" target="_blank">{{ app.url }}</a></td>
+  </tr>
+  {% endfor %}
+</table>
+
+</body>
+</html>
