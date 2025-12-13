@@ -20,6 +20,8 @@ table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px
   <input type="text" name="branch" value="main"><br>
   <label>App Name:</label><br>
   <input type="text" name="appName" required><br>
+  <label>Environment Variables (optional, KEY=VALUE format, one per line):</label><br>
+  <textarea name="envVars" rows="5" cols="50" placeholder="PORT=3000&#10;API_KEY=your_key&#10;DATABASE_URL=your_db_url"></textarea><br>
   <input type="submit" value="Deploy">
 </form>
 

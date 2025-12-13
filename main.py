@@ -7,6 +7,10 @@ import subprocess
 import os
 import json
 import shutil
+from utils.detect_app_type import detect_app_type
+from utils.generate_docker_file import  generate_dockerfile
+from utils.build_docker_image import build_docker_image
+
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -14,12 +18,10 @@ templates = Jinja2Templates(directory="templates")
 
 DATA_FILE = "apps.json"
 CLONE_DIR = "deployments"
-
-# Ensure deployments folder exists
 os.makedirs(CLONE_DIR, exist_ok=True)
 
-# Load existing apps from JSON
-if os.path.exists(DATA_FILE):
+# load apps
+if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
     with open(DATA_FILE, "r") as f:
         apps_data = json.load(f)
 else:
@@ -29,50 +31,46 @@ def save_apps():
     with open(DATA_FILE, "w") as f:
         json.dump(apps_data, f, indent=2)
 
-def detect_app_type(path):
-    if os.path.exists(os.path.join(path, "package.json")):
-        return "nodejs"
-    elif os.path.exists(os.path.join(path, "requirements.txt")) or os.path.exists(os.path.join(path, "pyproject.toml")):
-        return "python"
-    elif os.path.exists(os.path.join(path, "index.html")):
-        return "static"
-    else:
-        return "unknown"
+
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "apps": apps_data})
 
 @app.post("/deploy")
-def deploy(request: Request, gitUrl: str = Form(...), branch: str = Form("main"), appName: str = Form(...)):
-    # Clean app folder if exists
+def deploy(request: Request, gitUrl: str = Form(...), branch: str = Form("main"), appName: str = Form(...), envVars: str = Form("")):
     app_path = os.path.join(CLONE_DIR, appName)
     if os.path.exists(app_path):
         shutil.rmtree(app_path)
 
     try:
-        # Clone repo
         subprocess.run(["git", "clone", "-b", branch, gitUrl, app_path], check=True)
-
-        # Detect type
         app_type = detect_app_type(app_path)
 
-        # Placeholder URL (we’ll hook real deployment later)
-        deployed_url = f"http://localhost:8000/{appName}"
+        # Create .env file if environment variables are provided
+        if envVars.strip():
+            env_file_path = os.path.join(app_path, ".env")
+            with open(env_file_path, "w") as env_file:
+                env_file.write(envVars.strip())
 
-        # Save app info
+        generate_dockerfile(app_path, app_type)
+        image_tag = build_docker_image(appName, app_path)
+        deployed_url = f"http://localhost/{appName}"
+
         app_info = {
             "appName": appName,
             "gitUrl": gitUrl,
             "branch": branch,
             "type": app_type,
-            "status": "cloned",
-            "url": deployed_url
+            "status": "deployed",
+            "url": deployed_url,
+            "envVars": envVars
         }
         apps_data.append(app_info)
-        save_apps()
+        with open(DATA_FILE, "w") as f:
+            json.dump(apps_data, f, indent=2)
 
     except subprocess.CalledProcessError:
-        return {"status": "error", "message": "Failed to clone repository"}
+        return {"status": "error", "message": "Failed deployment"}
 
     return RedirectResponse(url="/", status_code=303)
