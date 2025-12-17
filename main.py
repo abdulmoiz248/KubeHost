@@ -10,6 +10,7 @@ import shutil
 from utils.detect_app_type import detect_app_type
 from utils.generate_docker_file import  generate_dockerfile
 from utils.build_docker_image import build_docker_image
+from utils.deploy_to_kub import deploy_to_k8s
 
 
 app = FastAPI()
@@ -55,7 +56,7 @@ def deploy(request: Request, gitUrl: str = Form(...), branch: str = Form("main")
 
         generate_dockerfile(app_path, app_type)
         image_tag = build_docker_image(appName, app_path)
-        deployed_url = f"http://localhost/{appName}"
+        deployed_url = deploy_to_k8s(appName, image_tag, app_type)
 
         app_info = {
             "appName": appName,

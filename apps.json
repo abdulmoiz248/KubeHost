@@ -1,0 +1,20 @@
+[
+  {
+    "appName": "gptwrap",
+    "gitUrl": "https://github.com/abdulmoiz248/Gpt-Wrap",
+    "branch": "main",
+    "type": "nodejs",
+    "status": "deployed",
+    "url": "http://localhost/gptwrap",
+    "envVars": ""
+  },
+  {
+    "appName": "gptwrap",
+    "gitUrl": "https://github.com/abdulmoiz248/Gpt-Wrap",
+    "branch": "main",
+    "type": "nodejs",
+    "status": "deployed",
+    "url": "http://localhost/gptwrap",
+    "envVars": ""
+  }
+]
