@@ -56,7 +56,9 @@ def deploy(request: Request, gitUrl: str = Form(...), branch: str = Form("main")
 
         generate_dockerfile(app_path, app_type)
         image_tag = build_docker_image(appName, app_path)
-        deployed_url = deploy_to_k8s(appName, image_tag, app_type)
+        
+        # Pass app_path and envVars to deployment function for port detection and env var injection
+        deployed_url = deploy_to_k8s(appName, image_tag, app_type, app_path=app_path, env_vars=envVars)
 
         app_info = {
             "appName": appName,
@@ -71,7 +73,13 @@ def deploy(request: Request, gitUrl: str = Form(...), branch: str = Form("main")
         with open(DATA_FILE, "w") as f:
             json.dump(apps_data, f, indent=2)
 
-    except subprocess.CalledProcessError:
-        return {"status": "error", "message": "Failed deployment"}
+    except subprocess.CalledProcessError as e:
+        error_msg = f"Deployment failed: {e.stderr if hasattr(e, 'stderr') and e.stderr else str(e)}"
+        print(f"ERROR: {error_msg}")
+        return {"status": "error", "message": error_msg}
+    except Exception as e:
+        error_msg = f"Deployment error: {str(e)}"
+        print(f"ERROR: {error_msg}")
+        return {"status": "error", "message": error_msg}
 
     return RedirectResponse(url="/", status_code=303)
